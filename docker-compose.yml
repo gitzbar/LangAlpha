@@ -59,6 +59,7 @@ services:
       # Override in .env to connect to external services or for host dev.
       DB_HOST: ${DB_HOST:-postgres}
       REDIS_URL: "${REDIS_URL:-redis://:${REDIS_PASSWORD:-redis}@redis:6379/0}"
+      BACKTEST_SERVICE_URL: "http://backtest:8001"
     depends_on:
       postgres:
         condition: service_healthy

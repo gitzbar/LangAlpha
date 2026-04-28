@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>LangAlpha Architecture</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0a0e1a;
+    color: #e2e8f0;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px;
+  }
+
+  h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #60a5fa, #a78bfa, #34d399);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 6px;
+    letter-spacing: -0.5px;
+  }
+  .subtitle {
+    font-size: 0.85rem;
+    color: #64748b;
+    margin-bottom: 40px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .diagram {
+    width: 100%;
+    max-width: 1200px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  /* ROW */
+  .row {
+    display: flex;
+    gap: 16px;
+    align-items: stretch;
+  }
+
+  /* LAYER LABEL */
+  .layer-label {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    transform: rotate(180deg);
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #475569;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 28px;
+  }
+
+  .row-content {
+    flex: 1;
+    display: flex;
+    gap: 12px;
+  }
+
+  /* BOX */
+  .box {
+    border-radius: 12px;
+    padding: 16px 18px;
+    border: 1px solid;
+    flex: 1;
+    position: relative;
+  }
+
+  .box-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .box-title .icon { font-size: 1rem; }
+
+  .box-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .tag {
+    font-size: 0.7rem;
+    padding: 3px 8px;
+    border-radius: 20px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  /* PORT badge */
+  .port {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 10px;
+    letter-spacing: 0.5px;
+  }
+
+  /* ARROW ROW */
+  .arrow-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 60px;
+    padding: 2px 0;
+  }
+  .arrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+  .arrow-line {
+    width: 2px;
+    height: 24px;
+    background: linear-gradient(to bottom, #334155, #60a5fa44);
+    position: relative;
+  }
+  .arrow-line::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 6px solid #60a5fa66;
+  }
+  .arrow-label {
+    font-size: 0.6rem;
+    color: #475569;
+    letter-spacing: 1px;
+  }
+
+  /* THEME COLORS */
+  /* Browser */
+  .theme-browser { border-color: #1e3a5f; background: #0f1e30; }
+  .theme-browser .box-title { color: #60a5fa; }
+  .theme-browser .tag { background: #1e3a5f; color: #93c5fd; }
+  .theme-browser .port { background: #1e3a5f; color: #60a5fa; }
+
+  /* Frontend */
+  .theme-frontend { border-color: #2d1f4e; background: #150d2a; }
+  .theme-frontend .box-title { color: #a78bfa; }
+  .theme-frontend .tag { background: #2d1f4e; color: #c4b5fd; }
+  .theme-frontend .port { background: #2d1f4e; color: #a78bfa; }
+
+  /* Backend */
+  .theme-backend { border-color: #1a3a2a; background: #0a1f16; }
+  .theme-backend .box-title { color: #34d399; }
+  .theme-backend .tag { background: #1a3a2a; color: #6ee7b7; }
+  .theme-backend .port { background: #1a3a2a; color: #34d399; }
+
+  /* Backtest */
+  .theme-backtest { border-color: #3a2a0a; background: #1f1508; }
+  .theme-backtest .box-title { color: #fbbf24; }
+  .theme-backtest .tag { background: #3a2a0a; color: #fcd34d; }
+  .theme-backtest .port { background: #3a2a0a; color: #fbbf24; }
+
+  /* Libs */
+  .theme-libs { border-color: #2a1a3a; background: #150d1f; }
+  .theme-libs .box-title { color: #f472b6; }
+  .theme-libs .tag { background: #2a1a3a; color: #f9a8d4; }
+
+  /* Infra */
+  .theme-infra { border-color: #1a2a3a; background: #0a1520; }
+  .theme-infra .box-title { color: #38bdf8; }
+  .theme-infra .tag { background: #1a2a3a; color: #7dd3fc; }
+  .theme-infra .port { background: #1a2a3a; color: #38bdf8; }
+
+  /* Data */
+  .theme-data { border-color: #1a3a1a; background: #0a1f0a; }
+  .theme-data .box-title { color: #4ade80; }
+  .theme-data .tag { background: #1a3a1a; color: #86efac; }
+
+  /* MCP */
+  .theme-mcp { border-color: #3a1a1a; background: #1f0a0a; }
+  .theme-mcp .box-title { color: #f87171; }
+  .theme-mcp .tag { background: #3a1a1a; color: #fca5a5; }
+
+  .desc {
+    font-size: 0.68rem;
+    color: #64748b;
+    margin-top: 8px;
+    line-height: 1.5;
+  }
+
+  /* SECTION DIVIDER */
+  .section-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 4px 0;
+  }
+  .section-divider span {
+    font-size: 0.65rem;
+    color: #334155;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .section-divider hr {
+    flex: 1;
+    border: none;
+    border-top: 1px dashed #1e293b;
+  }
+
+  /* STATUS badges */
+  .status-healthy {
+    display: inline-block;
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: #34d399;
+    margin-right: 4px;
+    box-shadow: 0 0 6px #34d39988;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  /* NEW badge */
+  .new-badge {
+    font-size: 0.55rem;
+    background: linear-gradient(135deg, #7c3aed, #db2777);
+    color: white;
+    padding: 1px 6px;
+    border-radius: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    vertical-align: middle;
+  }
+
+  /* LEGEND */
+  .legend {
+    margin-top: 32px;
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.7rem;
+    color: #64748b;
+  }
+  .legend-dot {
+    width: 10px; height: 10px;
+    border-radius: 3px;
+  }
+
+  /* COMMIT */
+  .commit-info {
+    margin-top: 20px;
+    font-size: 0.65rem;
+    color: #334155;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<h1>LangAlpha · Quant All-in-One</h1>
+<p class="subtitle">Full Stack Architecture · Phase 0 → 4 완료</p>
+
+<div class="diagram">
+
+  <!-- BROWSER -->
+  <div class="row">
+    <div class="layer-label">USER</div>
+    <div class="row-content">
+      <div class="box theme-browser" style="flex:2">
+        <div class="box-title"><span class="icon">🌐</span> Browser</div>
+        <div class="box-items">
+          <span class="tag">http://localhost:5173</span>
+          <span class="tag">Chat Agent</span>
+          <span class="tag">Dashboard</span>
+          <span class="tag">MarketView</span>
+          <span class="tag">Automations</span>
+          <span class="tag">백테스트 <span class="new-badge">NEW</span></span>
+        </div>
+        <div class="desc">React 19 + Vite 7 · TypeScript · Tailwind CSS · shadcn/ui · Recharts</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="arrow-row">
+    <div class="arrow"><div class="arrow-line"></div><span class="arrow-label">REST / SSE</span></div>
+    <div class="arrow"><div class="arrow-line"></div><span class="arrow-label">REST</span></div>
+  </div>
+
+  <!-- SERVICES -->
+  <div class="section-divider"><span>Docker Compose Services</span><hr></div>
+
+  <div class="row">
+    <div class="layer-label">APP</div>
+    <div class="row-content">
+
+      <!-- FRONTEND -->
+      <div class="box theme-frontend">
+        <div class="port">:5173</div>
+        <div class="box-title"><span class="icon">⚛️</span> Frontend <span class="status-healthy"></span></div>
+        <div class="box-items">
+          <span class="tag">node:22-alpine</span>
+          <span class="tag">pnpm</span>
+          <span class="tag">Vite dev server</span>
+        </div>
+        <div class="desc">quantall-in-one-frontend-1</div>
+      </div>
+
+      <!-- BACKEND -->
+      <div class="box theme-backend" style="flex:2">
+        <div class="port">:8000</div>
+        <div class="box-title"><span class="icon">🧠</span> Backend · PTC Agent <span class="status-healthy"></span></div>
+        <div class="box-items">
+          <span class="tag">FastAPI</span>
+          <span class="tag">LangGraph</span>
+          <span class="tag">PTC Pattern</span>
+          <span class="tag">Daytona Sandbox</span>
+          <span class="tag">Flash Mode</span>
+          <span class="tag">SSE Streaming</span>
+          <span class="tag">Alembic</span>
+          <span class="tag">psycopg3</span>
+        </div>
+        <div class="desc">python:3.12-slim · uv · tini · patchright Chromium · Camoufox · 23-layer middleware stack</div>
+      </div>
+
+      <!-- BACKTEST -->
+      <div class="box theme-backtest">
+        <div class="port">:8001</div>
+        <div class="box-title"><span class="icon">📊</span> Backtest Service <span class="status-healthy"></span> <span class="new-badge">NEW</span></div>
+        <div class="box-items">
+          <span class="tag">FastAPI</span>
+          <span class="tag">vectorbt</span>
+          <span class="tag">pandas</span>
+          <span class="tag">Equity Curve</span>
+          <span class="tag">Metrics</span>
+        </div>
+        <div class="desc">quantall-in-one-backtest-1<br>SPY benchmark · 샤프/MDD/CAGR</div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="arrow-row">
+    <div class="arrow"><div class="arrow-line"></div><span class="arrow-label">SQL</span></div>
+    <div class="arrow"><div class="arrow-line"></div><span class="arrow-label">cache</span></div>
+    <div class="arrow"><div class="arrow-line"></div><span class="arrow-label">parquet</span></div>
+  </div>
+
+  <!-- LIBS -->
+  <div class="row">
+    <div class="layer-label">LIBS</div>
+    <div class="row-content">
+
+      <div class="box theme-libs">
+        <div class="box-title"><span class="icon">📦</span> ginlix_data_sdk <span class="new-badge">NEW</span></div>
+        <div class="box-items">
+          <span class="tag">parquet_store</span>
+          <span class="tag">snapshot 관리</span>
+          <span class="tag">DATA_ROOT env</span>
+          <span class="tag">MANIFEST.json</span>
+        </div>
+      </div>
+
+      <div class="box theme-libs">
+        <div class="box-title"><span class="icon">📦</span> ginlix_backtest <span class="new-badge">NEW</span></div>
+        <div class="box-items">
+          <span class="tag">전략 엔진</span>
+          <span class="tag">수수료 모델</span>
+          <span class="tag">캘린더</span>
+          <span class="tag">종목조정</span>
+        </div>
+      </div>
+
+      <div class="box theme-mcp">
+        <div class="box-title"><span class="icon">🔌</span> MCP Servers</div>
+        <div class="box-items">
+          <span class="tag">FMP (재무데이터)</span>
+          <span class="tag">Yahoo Finance</span>
+          <span class="tag">Alpha Vantage</span>
+          <span class="tag">X/Twitter</span>
+          <span class="tag">SEC 공시</span>
+        </div>
+        <div class="desc">stdio subprocess · AI 에이전트용 tool wrappers</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- INFRA -->
+  <div class="section-divider"><span>Infrastructure</span><hr></div>
+
+  <div class="row">
+    <div class="layer-label">INFRA</div>
+    <div class="row-content">
+
+      <div class="box theme-infra">
+        <div class="port">:5432</div>
+        <div class="box-title"><span class="icon">🐘</span> PostgreSQL 18 <span class="status-healthy"></span></div>
+        <div class="box-items">
+          <span class="tag">langalpha-postgresql-data</span>
+          <span class="tag">대화 이력</span>
+          <span class="tag">LangGraph 체크포인터</span>
+          <span class="tag">사용량 추적</span>
+        </div>
+      </div>
+
+      <div class="box theme-infra">
+        <div class="port">:6379</div>
+        <div class="box-title"><span class="icon">🔴</span> Redis 7 <span class="status-healthy"></span></div>
+        <div class="box-items">
+          <span class="tag">langalpha-redis-data</span>
+          <span class="tag">SSE 버퍼</span>
+          <span class="tag">캐시</span>
+          <span class="tag">세션</span>
+        </div>
+      </div>
+
+      <div class="box theme-data">
+        <div class="box-title"><span class="icon">🗄️</span> Parquet Snapshots <span class="new-badge">NEW</span></div>
+        <div class="box-items">
+          <span class="tag">C:\Users\jinji\Desktop\data</span>
+          <span class="tag">us-2026-04-24</span>
+          <span class="tag">us-2026-04-28</span>
+          <span class="tag">S&amp;P 500 일봉</span>
+          <span class="tag">분할조정 가격</span>
+          <span class="tag">배당/분할 이벤트</span>
+        </div>
+        <div class="desc">backfill_us_daily.py · FMP API · --sp500 flag (위키백과 전종목)</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- SCRIPTS -->
+  <div class="row">
+    <div class="layer-label">TOOLS</div>
+    <div class="row-content">
+      <div class="box theme-data" style="flex:1">
+        <div class="box-title"><span class="icon">🔧</span> 운영 스크립트 <span class="new-badge">NEW</span></div>
+        <div class="box-items">
+          <span class="tag">backfill_us_daily.py</span>
+          <span class="tag">--sp500 (전종목)</span>
+          <span class="tag">--workers N (병렬)</span>
+          <span class="tag">--dry-run</span>
+          <span class="tag">docker_entrypoint.sh</span>
+          <span class="tag">make setup-db</span>
+        </div>
+      </div>
+      <div class="box theme-mcp" style="flex:2">
+        <div class="box-title"><span class="icon">🤖</span> AI 에이전트 패턴 (PTC)</div>
+        <div class="box-items">
+          <span class="tag">execute_code → Sandbox</span>
+          <span class="tag">MCP wrapper 자동 생성</span>
+          <span class="tag">멀티모달 차트 출력</span>
+          <span class="tag">Background Subagents</span>
+          <span class="tag">Flash Mode (빠른 답변)</span>
+          <span class="tag">HITL (승인)</span>
+          <span class="tag">Compaction</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- LEGEND -->
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:#60a5fa"></div>Browser/Frontend</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#34d399"></div>Backend API</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#fbbf24"></div>Backtest Service (신규)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#f472b6"></div>라이브러리 (신규)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#38bdf8"></div>인프라</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#4ade80"></div>데이터 스토어 (신규)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#f87171"></div>MCP / 외부 연동</div>
+</div>
+
+<div class="commit-info">
+  Phase 0–4 완료 · Docker Compose 단일 명령 기동 · 5 services healthy · github.com/gitzbar/LangAlpha
+</div>
+
+</body>
+</html>

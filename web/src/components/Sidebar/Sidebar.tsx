@@ -1,4 +1,4 @@
-import { ChartCandlestick, LayoutDashboard, MessageSquareText, Timer, Settings, FlaskConical } from 'lucide-react';
+import { ChartCandlestick, LayoutDashboard, MessageSquareText, Timer, Settings, FlaskConical, BookOpen } from 'lucide-react';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -39,6 +39,11 @@ function Sidebar() {
       key: '/backtests',
       icon: FlaskConical,
       label: '백테스트',
+    },
+    {
+      key: '/journal',
+      icon: BookOpen,
+      label: '매매 기록장',
     },
   ];
 

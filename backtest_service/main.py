@@ -23,6 +23,50 @@ from .runner import run_backtest
 from .schemas import (
     HealthOut, RunRequest, RunResponse, SnapshotOut, StrategyType,
 )
+from . import journal as _journal
+from pydantic import BaseModel
+
+
+# ---------------------------------------------------------------------------
+# Journal schemas
+# ---------------------------------------------------------------------------
+
+class TradeIn(BaseModel):
+    action: str          # "buy" | "sell"
+    symbol: str
+    quantity: float
+    price: float
+    currency: str = "USD"
+    date: str | None = None
+    broker: str = ""
+    fees: float = 0.0
+    amount_krw: float | None = None
+    rate: float | None = None
+    notes: str = ""
+
+class ForexIn(BaseModel):
+    from_currency: str
+    to_currency: str
+    from_amount: float
+    rate: float
+    date: str | None = None
+    broker: str = ""
+    fees: float = 0.0
+    notes: str = ""
+
+class DividendIn(BaseModel):
+    symbol: str
+    amount: float
+    currency: str = "USD"
+    date: str | None = None
+    amount_krw: float | None = None
+    tax_withheld: float = 0.0
+    notes: str = ""
+
+class NoteIn(BaseModel):
+    content: str
+    date: str | None = None
+    tags: list[str] | None = None
 
 # ---------------------------------------------------------------------------
 # App
@@ -124,3 +168,76 @@ def run(req: RunRequest) -> RunResponse:
         raise HTTPException(status_code=422, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Backtest failed: {e}")
+
+
+# ---------------------------------------------------------------------------
+# Journal routes
+# ---------------------------------------------------------------------------
+
+@app.get("/journal/entries", tags=["Journal"])
+def journal_entries(limit: int = 50) -> dict:
+    """Return recent journal entries as markdown."""
+    return {"markdown": _journal.show_journal(limit)}
+
+
+@app.get("/journal/summary", tags=["Journal"])
+def journal_summary() -> dict:
+    """Return portfolio summary from journal (positions, forex, dividends)."""
+    return {"markdown": _journal.journal_summary()}
+
+
+@app.get("/journal/csv", tags=["Journal"])
+def journal_csv() -> list[dict]:
+    """Return all journal entries as structured list (from CSV)."""
+    import csv
+    path = _journal._CSV_FILE
+    if not path.exists():
+        return []
+    rows = []
+    with path.open(encoding="utf-8-sig") as f:
+        for row in csv.DictReader(f):
+            rows.append(dict(row))
+    return rows
+
+
+@app.post("/journal/trade", tags=["Journal"])
+def log_trade(body: TradeIn) -> dict:
+    msg = _journal.log_trade(
+        action=body.action, symbol=body.symbol,
+        quantity=body.quantity, price=body.price,
+        currency=body.currency, date=body.date,
+        broker=body.broker, fees=body.fees,
+        amount_krw=body.amount_krw, rate=body.rate,
+        notes=body.notes,
+    )
+    return {"ok": True, "message": msg}
+
+
+@app.post("/journal/forex", tags=["Journal"])
+def log_forex(body: ForexIn) -> dict:
+    msg = _journal.log_forex(
+        from_currency=body.from_currency, to_currency=body.to_currency,
+        from_amount=body.from_amount, rate=body.rate,
+        date=body.date, broker=body.broker,
+        fees=body.fees, notes=body.notes,
+    )
+    return {"ok": True, "message": msg}
+
+
+@app.post("/journal/dividend", tags=["Journal"])
+def log_dividend(body: DividendIn) -> dict:
+    msg = _journal.log_dividend(
+        symbol=body.symbol, amount=body.amount,
+        currency=body.currency, date=body.date,
+        amount_krw=body.amount_krw,
+        tax_withheld=body.tax_withheld, notes=body.notes,
+    )
+    return {"ok": True, "message": msg}
+
+
+@app.post("/journal/note", tags=["Journal"])
+def log_note(body: NoteIn) -> dict:
+    msg = _journal.log_note(
+        content=body.content, date=body.date, tags=body.tags,
+    )
+    return {"ok": True, "message": msg}

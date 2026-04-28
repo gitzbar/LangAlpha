@@ -17,11 +17,15 @@ from __future__ import annotations
 import csv
 import re
 from datetime import datetime, timezone, date as date_type
+import os
 from pathlib import Path
 from typing import Literal
 
-_REPO_ROOT    = Path(__file__).parents[1]
-_JOURNAL_ROOT = _REPO_ROOT / "data" / "journal"
+_REPO_ROOT = Path(__file__).parents[1]
+# DATA_ROOT env var → /app/data in Docker (volume-mounted to host Desktop/data)
+# Fallback → repo_root/data (local dev)
+_DATA_BASE    = Path(os.environ["DATA_ROOT"]) if "DATA_ROOT" in os.environ else _REPO_ROOT / "data"
+_JOURNAL_ROOT = _DATA_BASE / "journal"
 _JOURNAL_ROOT.mkdir(parents=True, exist_ok=True)
 
 _MD_FILE  = _JOURNAL_ROOT / "trades.md"
