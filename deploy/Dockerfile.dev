@@ -17,7 +17,9 @@ WORKDIR /app
 
 # Copy dependency files first for layer caching
 COPY pyproject.toml uv.lock README.md ./
-COPY libs/ptc-cli/ libs/ptc-cli/
+COPY libs/ptc-cli/          libs/ptc-cli/
+COPY libs/ginlix_data_sdk/  libs/ginlix_data_sdk/
+COPY libs/ginlix_backtest/  libs/ginlix_backtest/
 
 # Install dependencies (frozen = use lockfile exactly)
 RUN uv sync --frozen --no-dev
