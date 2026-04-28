@@ -10,7 +10,7 @@ from ginlix_backtest import indicators
 from ginlix_data_sdk import parquet_store as store
 
 from .schemas import (
-    RunRequest, RunResponse, MetricsOut, BenchmarkMetricsOut,
+    RunRequest, RunResponse, MetricsOut, BenchmarkMetricsOut, EquityPoint,
     StrategyType, WeekdayParams, MonthlyParams, StreakParams,
     EmaCrossParams, SmaCrossParams, TurnOfMonthParams,
 )
@@ -109,6 +109,35 @@ def run_backtest(req: RunRequest) -> RunResponse:
     m = result.metrics
     bm = result.benchmark_metrics
 
+    # --- Equity curve (normalize to 100 at start, sample to ≤500 points) ---
+    equity = result.equity
+    equity_norm = equity / equity.iloc[0] * 100
+
+    # Benchmark buy-and-hold curve (normalized to 100)
+    bm_norm: pd.Series | None = None
+    if benchmark_close is not None:
+        bm_aligned = benchmark_close.reindex(equity.index).ffill()
+        bm_norm = bm_aligned / bm_aligned.iloc[0] * 100
+
+    # Downsample if too many points (keep first, last, and evenly spaced)
+    MAX_POINTS = 500
+    if len(equity_norm) > MAX_POINTS:
+        idx = list(range(0, len(equity_norm), len(equity_norm) // MAX_POINTS))
+        if idx[-1] != len(equity_norm) - 1:
+            idx.append(len(equity_norm) - 1)
+        equity_norm = equity_norm.iloc[idx]
+        if bm_norm is not None:
+            bm_norm = bm_norm.iloc[idx]
+
+    equity_curve = [
+        EquityPoint(
+            date=str(ts.date()),
+            strategy=round(float(sv), 4),
+            benchmark=round(float(bm_norm.iloc[i]), 4) if bm_norm is not None else None,
+        )
+        for i, (ts, sv) in enumerate(equity_norm.items())
+    ]
+
     return RunResponse(
         symbol=req.symbol,
         strategy=req.strategy.value,
@@ -134,4 +163,5 @@ def run_backtest(req: RunRequest) -> RunResponse:
             beta=round(bm["beta"], 4),
             correlation=round(bm["correlation"], 4),
         ) if bm else None,
+        equity_curve=equity_curve,
     )

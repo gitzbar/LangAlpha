@@ -100,6 +100,12 @@ class BenchmarkMetricsOut(BaseModel):
     correlation:            float
 
 
+class EquityPoint(BaseModel):
+    date:      str
+    strategy:  float
+    benchmark: float | None = None
+
+
 class RunResponse(BaseModel):
     symbol:           str
     strategy:         str
@@ -110,6 +116,7 @@ class RunResponse(BaseModel):
     n_bars:           int
     metrics:          MetricsOut
     benchmark_metrics: BenchmarkMetricsOut | None
+    equity_curve:     list[EquityPoint] = []
 
 
 class SnapshotOut(BaseModel):

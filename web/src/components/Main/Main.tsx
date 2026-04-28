@@ -10,6 +10,7 @@ const DetailPage = React.lazy(() => import('../../pages/Detail/DetailPage'));
 const NewsDetailPage = React.lazy(() => import('../../pages/Detail/NewsDetailPage'));
 const Automations = React.lazy(() => import('../../pages/Automations/Automations'));
 const Settings = React.lazy(() => import('../../pages/Settings/Settings'));
+const Backtests = React.lazy(() => import('../../pages/Backtests/Backtests'));
 
 function Main() {
   const location = useLocation();
@@ -27,6 +28,7 @@ function Main() {
         <Route path="/chat/:workspaceId" element={<ChatAgent />} />
         <Route path="/market" element={<MarketView />} />
         <Route path="/automations" element={<Automations />} />
+        <Route path="/backtests" element={<Backtests />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/news/:id" element={<NewsDetailPage />} />
         <Route path="/detail/:indexNumber" element={<DetailPage />} />
