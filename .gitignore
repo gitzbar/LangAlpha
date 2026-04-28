@@ -91,3 +91,6 @@ docs/api/environments/production.yml
 .superpowers/
 .gstack/
 TODO.md
+
+# Quant backtest data (large Parquet snapshots — not committed)
+data/

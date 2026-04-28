@@ -1,0 +1,24 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ginlix-backtest"
+version = "0.1.0"
+description = "Ginlix backtesting framework — reliability-first vectorbt wrapper"
+requires-python = ">=3.12"
+dependencies = [
+    "ginlix-data-sdk>=0.1.0",
+    "pandas>=2.2.3",
+    "numpy>=1.24,<3.0",
+    "exchange_calendars>=4.5",
+    "pyarrow>=14.0",
+    "vectorbt>=0.28.2",
+    "psycopg[binary]>=3.2.9",
+]
+
+[tool.uv.sources]
+ginlix-data-sdk = { workspace = true }
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ginlix_backtest"]

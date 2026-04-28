@@ -72,10 +72,21 @@ dependencies = [
     "requests>=2.32.5",
     "croniter>=2.0.0",
     "aiodocker>=0.23.0",
+    # Quant / backtesting stack (Phase 0+)
+    "exchange_calendars>=4.5",
+    "pyarrow>=14.0",
+    "ginlix-data-sdk",
+    "ginlix-backtest",
+    "vectorbt>=0.28.2",
 ]
 
 [tool.uv.sources]
-ptc-cli = { path = "libs/ptc-cli", editable = true }
+ptc-cli = { workspace = true }
+ginlix-data-sdk = { workspace = true }
+ginlix-backtest = { workspace = true }
+
+[tool.uv.workspace]
+members = ["libs/ptc-cli", "libs/ginlix_data_sdk", "libs/ginlix_backtest"]
 
 [project.optional-dependencies]
 dev = [

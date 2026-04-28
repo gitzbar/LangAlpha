@@ -1,0 +1,19 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ginlix-data-sdk"
+version = "0.1.0"
+description = "Ginlix unified financial data access SDK"
+requires-python = ">=3.12"
+dependencies = [
+    "pandas>=2.2.3",
+    "pyarrow>=14.0",
+    "exchange_calendars>=4.5",
+    "yfinance>=1.2.0",
+    "pydantic>=2.0",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ginlix_data_sdk"]

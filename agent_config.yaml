@@ -106,6 +106,19 @@ mcp:
       env:
         GINLIX_DATA_URL: "${GINLIX_DATA_URL}"
 
+    # Backtest MCP server — runs quantitative strategy backtests over local Parquet snapshots.
+    # Requires backtest_service to be running: uv run uvicorn backtest_service.main:app --port 8001
+    - name: "backtest"
+      enabled: true
+      description: "Quantitative strategy backtester over historical US stock data (2015-2026)"
+      instruction: "Use for running backtests on US stocks. Tools: run_backtest (execute a strategy), run_parameter_sweep (find best params), list_symbols (available tickers), list_strategies (supported strategy types), list_snapshots (available data). Available symbols: AAPL, MSFT, NVDA, GOOGL, AMZN, SPY, QQQ. Strategy types: weekday, monthly, streak, ema_cross, sma_cross, turn_of_month."
+      tool_exposure_mode: "detailed"
+      transport: "stdio"
+      command: "uv"
+      args: ["run", "python", "mcp_servers/backtest_mcp_server.py"]
+      env:
+        BACKTEST_SERVICE_URL: "http://localhost:8001"
+
     - name: "tavily"
       enabled: false
       description: "Web search engine for finding current information online"

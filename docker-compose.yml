@@ -82,6 +82,30 @@ services:
       retries: 10
       start_period: 30s
 
+  backtest:
+    build:
+      context: .
+      dockerfile: backtest_service/Dockerfile
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8001:8001"
+    environment:
+      DB_HOST: ${DB_HOST:-postgres}
+      DATABASE_URL: "postgresql://postgres:${DB_PASSWORD:-postgres}@${DB_HOST:-postgres}:5432/${DB_NAME:-postgres}"
+    volumes:
+      # Live reload during development
+      - ./backtest_service:/app/backtest_service
+      - ./libs/ginlix_data_sdk:/app/libs/ginlix_data_sdk
+      - ./libs/ginlix_backtest:/app/libs/ginlix_backtest
+      # Parquet snapshots — mount host data dir into container
+      - ${DATA_ROOT:-./data}:/data
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8001/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
   frontend:
     image: node:22-alpine
     working_dir: /app

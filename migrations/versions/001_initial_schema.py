@@ -20,6 +20,7 @@ LangGraph tables:
 """
 
 import asyncio
+import sys
 from typing import Sequence, Union
 
 from alembic import op
@@ -528,6 +529,9 @@ def upgrade() -> None:
 
     # -- Checkpoint tables (via library API, separate autocommit connection) --
     db_url = _get_psycopg_url()
+    # Windows ProactorEventLoop is incompatible with psycopg async -- use SelectorEventLoop
+    if sys.platform == "win32":
+        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     asyncio.run(_setup_checkpoint_tables(db_url))
 
     # -- Store table (inline DDL) --

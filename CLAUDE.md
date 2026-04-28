@@ -138,3 +138,18 @@ Jinja2 templates in `src/ptc_agent/agent/prompts/templates/`, config in `prompts
 - **No SQLAlchemy ORM** — all DB access is raw SQL via psycopg3. Alembic is used for migrations only (raw SQL via `op.execute()`).
 - **Two config layers**: `.env` for credentials/URLs, YAML files for behavioral settings.
 - **Middleware-driven architecture**: agent behavior is composed via middleware, not graph nodes.
+
+## Quant / Backtesting Extension (in progress)
+
+This repository is being extended into a **personal quant research platform**. Design decisions, reliability rules, and phased rollout are captured in ADRs under `docs/adr/`.
+
+**Current state**: design phase, pre-implementation.
+
+**Start here for context**:
+- [docs/adr/001-backtest-architecture.md](docs/adr/001-backtest-architecture.md) — full architecture, engine choice (vectorbt), reliability rules (price adjustment, fees, calendar, corp actions), DB schema draft, phase plan
+
+**Key constraints to remember**:
+- Single-user personal tool, not a product — no auth/sandboxing concerns
+- US market only for v1
+- Python code as strategy definition (framework-enforced reliability, not code validation)
+- Library-first (`libs/ginlix_backtest/`), HTTP service and MCP server come later

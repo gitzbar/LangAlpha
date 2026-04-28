@@ -28,6 +28,9 @@ dev = [
     "mypy>=1.9.0",
 ]
 
+[tool.uv.sources]
+ptc-agent = { workspace = true }
+
 [build-system]
 requires = ["setuptools>=73.0.0", "wheel"]
 build-backend = "setuptools.build_meta"
