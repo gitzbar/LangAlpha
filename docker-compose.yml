@@ -92,13 +92,16 @@ services:
     environment:
       DB_HOST: ${DB_HOST:-postgres}
       DATABASE_URL: "postgresql://postgres:${DB_PASSWORD:-postgres}@${DB_HOST:-postgres}:5432/${DB_NAME:-postgres}"
+      # DATA_ROOT tells parquet_store where to find snapshots inside the container
+      DATA_ROOT: /app/data
     volumes:
       # Live reload during development
       - ./backtest_service:/app/backtest_service
       - ./libs/ginlix_data_sdk:/app/libs/ginlix_data_sdk
       - ./libs/ginlix_backtest:/app/libs/ginlix_backtest
       # Parquet snapshots — mount host data dir into container
-      - ${DATA_ROOT:-./data}:/data
+      # Set DATA_ROOT in .env to your host data path (e.g. C:\Users\jinji\Desktop\data)
+      - ${DATA_ROOT:-./data}:/app/data
     healthcheck:
       test: ["CMD", "curl", "-sf", "http://localhost:8001/health"]
       interval: 10s

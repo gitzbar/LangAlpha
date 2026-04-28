@@ -3,8 +3,14 @@ Server script
 """
 
 import argparse
+import asyncio
 import logging
+import sys
 import uvicorn
+
+# Windows ProactorEventLoop is incompatible with psycopg async — use SelectorEventLoop
+if sys.platform == "win32":
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 logger = logging.getLogger(__name__)
 
@@ -61,15 +67,33 @@ if __name__ == "__main__":
 
     try:
         logger.info(f"Starting server on {args.host}:{args.port}")
-        uvicorn.run(
-            "src.server.app:app",
-            host=args.host,
-            port=args.port,
-            reload=reload,
-            log_level=args.log_level,
-            timeout_keep_alive=300,  # 5 minutes - for long-running workflows
-            timeout_graceful_shutdown=60,  # 60 seconds for graceful shutdown
-        )
+
+        if sys.platform == "win32" and not reload:
+            # On Windows, uvicorn.run() uses ProactorEventLoop which breaks psycopg async.
+            # Manually create a SelectorEventLoop and run uvicorn in it.
+            import selectors
+            config = uvicorn.Config(
+                "src.server.app:app",
+                host=args.host,
+                port=args.port,
+                log_level=args.log_level,
+                timeout_keep_alive=300,
+                timeout_graceful_shutdown=60,
+            )
+            server = uvicorn.Server(config)
+            loop = asyncio.SelectorEventLoop(selectors.SelectSelector())
+            asyncio.set_event_loop(loop)
+            loop.run_until_complete(server.serve())
+        else:
+            uvicorn.run(
+                "src.server.app:app",
+                host=args.host,
+                port=args.port,
+                reload=reload,
+                log_level=args.log_level,
+                timeout_keep_alive=300,
+                timeout_graceful_shutdown=60,
+            )
     except Exception as e:
         logger.error(f"Failed to start server: {str(e)}")
         exit(1)

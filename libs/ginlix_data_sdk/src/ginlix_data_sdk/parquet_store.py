@@ -10,13 +10,20 @@ Layout:
 from __future__ import annotations
 
 import json
+import os
 from datetime import datetime, timezone
 from pathlib import Path
 
 import pandas as pd
 
+# DATA_ROOT env var overrides default (used in Docker to mount host data dir)
+# Default: repo_root/data/snapshots  (works for local dev)
 _REPO_ROOT = Path(__file__).parents[5]  # libs/ginlix_data_sdk/src/ginlix_data_sdk -> repo root
-_DATA_ROOT = _REPO_ROOT / "data" / "snapshots"
+_DATA_ROOT = (
+    Path(os.environ["DATA_ROOT"]) / "snapshots"
+    if "DATA_ROOT" in os.environ
+    else _REPO_ROOT / "data" / "snapshots"
+)
 
 
 def snapshot_path(snapshot_id: str) -> Path:

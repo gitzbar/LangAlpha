@@ -50,7 +50,7 @@ def _load_pricing_from_manifest() -> Dict[str, Any]:
         )
 
     try:
-        with open(manifest_path, 'r') as f:
+        with open(manifest_path, 'r', encoding='utf-8') as f:
             manifest = json.load(f)
     except Exception as e:
         raise RuntimeError(

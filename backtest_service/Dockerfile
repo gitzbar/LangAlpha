@@ -1,27 +1,31 @@
 FROM python:3.12-slim
 
-WORKDIR /app
+ENV PYTHONUNBUFFERED=1
 
-# System deps for numpy/pandas compiled extensions
+# System deps for numpy/pandas/vectorbt compiled extensions + healthcheck
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy dependency files first for layer caching
-COPY pyproject.toml uv.lock ./
-COPY libs/ginlix_data_sdk ./libs/ginlix_data_sdk
-COPY libs/ginlix_backtest ./libs/ginlix_backtest
+# Install uv
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
-RUN pip install uv && \
-    uv sync --no-dev --frozen
+WORKDIR /app
+
+# Copy all workspace members needed by uv.lock
+COPY pyproject.toml uv.lock README.md ./
+COPY libs/ptc-cli/          libs/ptc-cli/
+COPY libs/ginlix_data_sdk/  libs/ginlix_data_sdk/
+COPY libs/ginlix_backtest/  libs/ginlix_backtest/
+
+# Install only backtest-related deps (skip LangChain/browser etc.)
+RUN uv sync --no-dev --frozen
 
 # Copy service code
 COPY backtest_service ./backtest_service
 
-# Data snapshots are mounted at runtime via docker-compose volume
-# ENV so the SDK can find them when DATA_ROOT is overridden
-ENV DATA_ROOT=/data
-
 EXPOSE 8001
 
-CMD ["uv", "run", "uvicorn", "backtest_service.main:app", "--host", "0.0.0.0", "--port", "8001"]
+CMD ["uv", "run", "uvicorn", "backtest_service.main:app", \
+     "--host", "0.0.0.0", "--port", "8001"]

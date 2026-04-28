@@ -17,12 +17,12 @@ class ModelConfig:
     def __init__(self):
         # Load models.json for model parameters
         llm_config_path = Path(__file__).parent / "manifest" / "models.json"
-        with open(llm_config_path, 'r') as f:
+        with open(llm_config_path, 'r', encoding='utf-8') as f:
             self.llm_config = json.load(f)
 
         # Load providers.json for token tracking and provider info
         manifest_path = Path(__file__).parent / "manifest" / "providers.json"
-        with open(manifest_path, 'r') as f:
+        with open(manifest_path, 'r', encoding='utf-8') as f:
             self.manifest = json.load(f)
 
         # Flatten grouped provider_config into a flat dict for downstream access.
